@@ -27,39 +27,72 @@ $("#editarTareaModal").on("show.bs.modal", function (event) {
     modal.find("#editarTareaForm").attr("action", formAction);
 });
 
-/*
-    // !--Editar tarea existente-- >
+/*Lo que si funciona*/
+// Datos de la tarea a actualizar
+var tarea = {
+    idTarea: 10, // ID de la tarea que deseas actualizar
+    titulo: "Nuevo título",
+    descripcion: "Nueva descripción",
+    //fechaVenc: "2024-12-31", // Fecha de vencimiento en formato YYYY-MM-DD
+    //idEstadoF: 1, // ID del estado de la tarea
+    //idUsuarioF: 2 // ID del usuario asignado a la tarea
+};
+
+$.ajaxSetup({
+    headers: {
+        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+    },
+});
+// Enviar la solicitud AJAX para actualizar la tarea
+$.ajax({
+    url: "{{ route('tarea.update', '') }}/" + tarea.idTarea,
+    method: "PUT",
+    data: tarea,
+    dataType: "json",
+    success: function (response) {
+        console.log("Tarea editada exitosamente");
+        // Aquí puedes manejar la respuesta si es necesario
+    },
+    error: function (xhr, status, error) {
+        console.error("Error al editar la tarea:", error);
+        console.error("Respuesta del servidor:", xhr.responseText);
+    },
+});
+
+/*// Editar tarea
     $(".editar-tarea-btn").click(function() {
       var tarea = $(this).data("tarea");
-      $("#editarTareaForm input[name='titulo']").val(tarea.titulo);
-      $("#editarTareaForm textarea[name='descripcion']").val(tarea.descripcion);
-      $("#editarTareaForm input[name='fechaVenc']").val(tarea.fechaVenc);
-      var id = $(this).data("id");
+      console.log('el id es: ' + tarea.idTarea);
+      $("#editarTareaForm").attr("action", "{{ route('tarea.update', '') }}/" + tarea
+        .idTarea); // Actualizar la URL del formulario
+      $("#titulo_editar").val(tarea.titulo);
+      $("#descripcion_editar").val(tarea.descripcion);
+      $("#fechaVenc_editar").val(tarea.fechaVenc);
 
-      console.log("el id de editar es: " + id);
+      // Abrir el modal de edición
+      $('#editarTareaModal').modal('show');
     });
 
-    //   !--Actualizar tarea-- >
     $("#editarTareaForm").submit(function(event) {
       event.preventDefault();
       var datos = $(this).serialize();
-      var id = $("#editarTareaForm").data("id");
       $.ajaxSetup({
         headers: {
           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
       });
       $.ajax({
-        url: "{{ url('tarea.update') }}/" + id, // Utiliza url() para construir la URL
-        method: "PUT",
-        data: datos,
+        url: $(this).attr('action'), // Obtener la URL del formulario
+        method: "PUT", // Usar POST para Laravel
+        data: datos + '&_method=PUT', // Agregar el campo _method con el valor PUT
         success: function(response) {
           console.log("Tarea editada exitosamente");
-          // Actualizar la interfaz de usuario o realizar cualquier otra acción necesaria
+          $('#editarTareaModal').modal('hide');
+          // Actualizar la tarea en la lista (puedes hacerlo más eficiente, recargando solo la tarea modificada)
+          location.reload();
         },
         error: function(xhr, status, error) {
           console.error("Error al editar la tarea");
-          // Manejar errores de validación u otros errores
         },
       });
     });*/

@@ -10,5 +10,8 @@ class Tarea extends Model
   protected $table="Tareas";
   protected $primaryKey="idTarea";
   public $timestamps = false;
+  protected $fillable = [
+    'idTarea', 'titulo', 'descripcion', 'fechaVenc', 'idEstadoF', 'idUsuarioF'
+];
     use HasFactory;
 }

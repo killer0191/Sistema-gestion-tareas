@@ -27,7 +27,6 @@ public function update(Request $request, $id)
     $request->validate([
         'titulo' => 'required',
         'descripcion' => 'required',
-        // Agrega aquí cualquier otra validación que necesites
     ]);
 
     $tarea = Tarea::findOrFail($id);

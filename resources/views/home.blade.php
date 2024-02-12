@@ -59,7 +59,7 @@
 
 
         @foreach($tareas as $tarea)
-        <div class="card mb-3">
+        <div class="card mb-3" id="tarea-{{ $tarea->idTarea }}">
           <div class="card-body">
             <h5 class="card-title">{{ $tarea->titulo }}</h5>
             <p class="card-text">{{ $tarea->descripcion }}</p>
@@ -74,6 +74,8 @@
             </form>
             <button class="btn btn-primary mt-2 editar-tarea-btn" data-toggle="modal" data-target="#editarTareaModal"
               data-tarea="{{ json_encode($tarea) }}" data-id="{{ $tarea->idTarea }}">Editar</button>
+
+            <div id="editarTareaContainer-{{ $tarea->idTarea }}"></div>
 
           </div>
         </div>
@@ -149,7 +151,12 @@
               <label for="fechaVenc_editar">Fecha de vencimiento:</label>
               <input type="date" class="form-control" id="fechaVenc_editar" name="fechaVenc" required>
             </div>
-            <input type="hidden" name="idEstadoF" value="2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="1" id="estadoCheckbox" name="idEstadoF">
+              <label class="form-check-label" for="estadoCheckbox">
+                Tarea finalizada
+              </label>
+            </div>
             <input type="hidden" name="idUsuarioF" value="{{ Auth::id() }}">
             <button type="submit" class="btn btn-primary">Actualizar Tarea</button>
           </form>
@@ -161,6 +168,7 @@
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 
   <script>
   $(document).ready(function() {
@@ -209,44 +217,57 @@
     });
 
     // Editar tarea
-    // Editar tarea
-    $(".editar-tarea-btn").click(function() {
-      var tarea = $(this).data("tarea");
-      console.log('el id es: ' + tarea.idTarea);
-      $("#editarTareaForm").attr("action", "{{ route('tarea.update', '') }}/" + tarea
-      .idTarea); // Actualizar la URL del formulario
-      $("#titulo_editar").val(tarea.titulo);
-      $("#descripcion_editar").val(tarea.descripcion);
-      $("#fechaVenc_editar").val(tarea.fechaVenc);
-
-      // Abrir el modal de edición
-      $('#editarTareaModal').modal('show');
+    $(".editar-tarea-btn").click(function(event) {
+      event.preventDefault();
+      var tareaData = $(this).data("tarea");
+      $("#titulo_editar").val(tareaData.titulo);
+      $("#descripcion_editar").val(tareaData.descripcion);
+      $("#fechaVenc_editar").val(tareaData.fechaVenc);
+      $("#editarTareaForm").data("id", tareaData.idTarea);
     });
 
+    // Actualizar tarea
     $("#editarTareaForm").submit(function(event) {
       event.preventDefault();
       var datos = $(this).serialize();
+      var id = $(this).data("id");
+      var estado = $("#estadoCheckbox").is(":checked") ? 1 : 2; // Get the checkbox value
+      datos += "&idEstadoF=" + estado; // Add the checkbox value to the data string
       $.ajaxSetup({
         headers: {
           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
       });
       $.ajax({
-        url: $(this).attr('action'), // Obtener la URL del formulario
-        method: "POST", // Usar POST para Laravel
-        data: datos + '&_method=PUT', // Agregar el campo _method con el valor PUT
+        url: "{{ route('tarea.update', '') }}/" + id,
+        method: "PUT",
+        data: datos,
         success: function(response) {
           console.log("Tarea editada exitosamente");
-          $('#editarTareaModal').modal('hide');
-          // Actualizar la tarea en la lista (puedes hacerlo más eficiente, recargando solo la tarea modificada)
-          location.reload();
+          // Actualizar los datos de la tarea en el DOM
+          var tarea = response.tarea;
+          var tareaElement = $("#tarea-" + id);
+          tareaElement.find(".card-title").text(tarea.titulo);
+          tareaElement.find(".card-text").remove(); // Remove existing task description
+          tareaElement.find(".fecha-vencimiento").remove(); // Remove existing due date
+          tareaElement.append("<p class='card-text'>" + tarea.descripcion +
+          "</p>"); // Add new task description
+          if (tarea.fechaVenc) {
+            tareaElement.append("<p class='card-text fecha-vencimiento'>Fecha de vencimiento: " + tarea
+              .fechaVenc + "</p>"); // Add new due date
+          }
+          tareaElement.find(".eliminar-tarea-btn").data("id", tarea.idTarea);
+          tareaElement.find(".editar-tarea-btn").data("tarea", JSON.stringify(tarea));
+          tareaElement.find(".editar-tarea-btn").data("id", tarea.idTarea);
+          // Close the edit task modal
+          $("#editarTareaModal").modal("hide");
         },
         error: function(xhr, status, error) {
           console.error("Error al editar la tarea");
+          console.error(xhr.responseText);
         },
       });
     });
-
 
     // Eliminar tarea
     $(".eliminar-tarea-btn").click(function(event) {
