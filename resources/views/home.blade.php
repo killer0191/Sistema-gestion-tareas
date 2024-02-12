@@ -59,7 +59,23 @@
 
 
         @foreach($tareas as $tarea)
+        @php
+        // Determinar el nombre de la imagen según el estado de la tarea y si está vencida
+        $imagen = '';
+        if ($tarea->idEstadoF == 1) {
+        $imagen = 'finalizada.png';
+        } else {
+        $fechaActual = now();
+        $fechaVencimiento = \Carbon\Carbon::parse($tarea->fechaVenc);
+        if ($fechaActual->gt($fechaVencimiento)) {
+        $imagen = 'vencida.png';
+        } else {
+        $imagen = 'pendiente.png';
+        }
+        }
+        @endphp
         <div class="card mb-3" id="tarea-{{ $tarea->idTarea }}">
+          <img src="{{ asset('assets/' . $imagen) }}" class="estado-imagen" alt="Estado" width="50px">
           <div class="card-body">
             <h5 class="card-title">{{ $tarea->titulo }}</h5>
             <p class="card-text">{{ $tarea->descripcion }}</p>
@@ -157,6 +173,7 @@
                 Tarea finalizada
               </label>
             </div>
+            <input type="hidden" id="estadoOriginal" name="estadoOriginal" value="{{ $tarea->idEstadoF }}">
             <input type="hidden" name="idUsuarioF" value="{{ Auth::id() }}">
             <button type="submit" class="btn btn-primary">Actualizar Tarea</button>
           </form>
@@ -191,9 +208,24 @@
           $('#crearTareaModal').modal('hide');
           // Limpiar los campos del formulario
           $("#crearTareaForm")[0].reset();
+
+          var imagen = '';
+          if (response.idEstadoF == 1) {
+            imagen = 'finalizada.png';
+          } else {
+            var fechaActual = new Date();
+            var fechaVencimiento = new Date(response.fechaVenc);
+            if (fechaActual > fechaVencimiento) {
+              imagen = 'vencida.png';
+            } else {
+              imagen = 'pendiente.png';
+            }
+          }
+
           // Agregar la nueva tarea a la lista
           var nuevaTarea = `
         <div class="card mb-3">
+        <img src="{{ asset('assets/') }}/${imagen}" class="estado-imagen" alt="Estado" width="50px">
           <div class="card-body">
             <h5 class="card-title">${response.titulo}</h5>
             <p class="card-text">${response.descripcion}</p>
@@ -209,6 +241,7 @@
         </div>
       `;
           $(".row").append(nuevaTarea);
+
         },
         error: function(xhr, status, error) {
           console.error("Error al crear la tarea");
@@ -222,17 +255,32 @@
       var tareaData = $(this).data("tarea");
       $("#titulo_editar").val(tareaData.titulo);
       $("#descripcion_editar").val(tareaData.descripcion);
-      $("#fechaVenc_editar").val(tareaData.fechaVenc);
+
+      // Formatear la fecha de vencimiento para mostrarla en el input de tipo date
+      const fechaVencString = tareaData.fechaVenc;
+      const fechaVenc = new Date(fechaVencString);
+      const formattedFechaVenc = fechaVenc.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+      $("#fechaVenc_editar").val(formattedFechaVenc);
+
+      // Marcar la casilla "Tarea finalizada" si la tarea está finalizada
+      if (tareaData.idEstadoF == 1) {
+        $("#estadoCheckbox").prop("checked", true);
+      } else {
+        $("#estadoCheckbox").prop("checked", false);
+      }
+
       $("#editarTareaForm").data("id", tareaData.idTarea);
     });
+
 
     // Actualizar tarea
     $("#editarTareaForm").submit(function(event) {
       event.preventDefault();
       var datos = $(this).serialize();
       var id = $(this).data("id");
-      var estado = $("#estadoCheckbox").is(":checked") ? 1 : 2; // Get the checkbox value
-      datos += "&idEstadoF=" + estado; // Add the checkbox value to the data string
+      var estadoOriginal = $("#estadoOriginal").val(); // Obtener el estado original
+      var estado = $("#estadoCheckbox").is(":checked") ? 1 : 2; // Obtener el nuevo estado
+      datos += "&idEstadoF=" + estado;
       $.ajaxSetup({
         headers: {
           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -248,18 +296,23 @@
           var tarea = response.tarea;
           var tareaElement = $("#tarea-" + id);
           tareaElement.find(".card-title").text(tarea.titulo);
-          tareaElement.find(".card-text").remove(); // Remove existing task description
-          tareaElement.find(".fecha-vencimiento").remove(); // Remove existing due date
+          tareaElement.find(".card-text").remove(); // Eliminar la descripción existente
+          tareaElement.find(".fecha-vencimiento").remove(); // Eliminar la fecha de vencimiento existente
           tareaElement.append("<p class='card-text'>" + tarea.descripcion +
-          "</p>"); // Add new task description
+            "</p>"); // Agregar la nueva descripción
           if (tarea.fechaVenc) {
             tareaElement.append("<p class='card-text fecha-vencimiento'>Fecha de vencimiento: " + tarea
-              .fechaVenc + "</p>"); // Add new due date
+              .fechaVenc + "</p>"); // Agregar la nueva fecha de vencimiento
           }
           tareaElement.find(".eliminar-tarea-btn").data("id", tarea.idTarea);
           tareaElement.find(".editar-tarea-btn").data("tarea", JSON.stringify(tarea));
           tareaElement.find(".editar-tarea-btn").data("id", tarea.idTarea);
-          // Close the edit task modal
+          // Si el estado original es diferente al nuevo estado, actualizar la imagen
+          if (estadoOriginal != estado) {
+            var nuevaImagen = estado == 1 ? 'finalizada.png' : 'pendiente.png';
+            tareaElement.find('.estado-imagen').attr('src', '{{ asset("assets/") }}/' + nuevaImagen);
+          }
+          // Cerrar el modal de edición de tarea
           $("#editarTareaModal").modal("hide");
         },
         error: function(xhr, status, error) {
@@ -268,6 +321,7 @@
         },
       });
     });
+
 
     // Eliminar tarea
     $(".eliminar-tarea-btn").click(function(event) {
