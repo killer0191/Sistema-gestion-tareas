@@ -78,7 +78,9 @@
               </div>
               <p class="card-text">{{ $tarea->descripcion }}</p>
               @if($tarea->fechaVenc)
-              <p class="card-text fecha-vencimiento">Fecha de vencimiento: {{ $tarea->fechaVenc }}</p>
+              <p class="card-text fecha-vencimiento">Fecha de vencimiento:
+                {{ date('Y-m-d', strtotime($tarea->fechaVenc)) }}</p>
+
               @endif
             </div>
           </div>
@@ -293,6 +295,7 @@
           // Actualizar el estado de la tarea en la imagen
           var nuevaImagen = tarea.idEstadoF == 1 ? 'finalizada.png' : (tarea.idEstadoF == 2 ?
             'pendiente.png' : 'vencida.png');
+
           tareaElement.find('.estado-imagen').attr('src', '{{ asset("assets/") }}/' + nuevaImagen);
           // Actualizar los datos del botón de editar tarea
           tareaElement.find(".editar-tarea-btn").data("tarea", JSON.stringify(tarea));
