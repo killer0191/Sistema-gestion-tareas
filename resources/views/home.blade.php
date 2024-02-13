@@ -8,98 +8,77 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <style>
-  /* Estilos para centrar vertical y horizontalmente el formulario */
-  .modal-dialog {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-  }
-
-  .modal-content {
-    width: 80%;
-  }
-  </style>
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/home_style.css') }}">
 </head>
 
 <body>
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">
-      <img src="{{ asset('assets/logo.png') }}" width="70" height="70" class="d-inline-block align-top" alt="Logo">
-    </a>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Inicio <span class="sr-only">(current)</span></a>
-        </li>
-      </ul>
-      @auth
-      <div class="navbar-text">
-        <span>Bienvenido, {{ Auth::user()->nombre }}</span>
-        <form action="{{ route('logout') }}" method="POST">
-          @csrf
-          <button type="submit" class="btn btn-link ml-3"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
-        </form>
-      </div>
-      @endauth
+  <header class="header dark-theme d-flex align-items-center justify-content-center" style="height: 100vh;">
+    <div class="header-content text-center">
+      <h1 class="display-4">Sistema de Gestión de Tareas</h1>
+      <p class="lead">Bienvenido, {{ Auth::user()->nombre }}</p>
+      <a id="scroll-button" class="btn btn-success btn-lg mt-3">Ver lista de tareas</a>
+      <form id="logout-form" method="POST" action="{{ route('logout') }}" style="display: inline;">
+        @csrf
+        <button type="submit" class="logout-button">Cerrar sesión</button>
+      </form>
     </div>
-  </nav>
+  </header>
 
-  <main class="container mt-4">
-    <h1>Sistema de Gestión de Tareas</h1>
+  <main class="container mt-5" id="main-content">
     <div class="row">
-      <div class="col-md-6">
-        <h2>Lista de Tareas</h2>
-
+      <div class="col-md-6 offset-md-3">
+        <h2>Lista de tareas</h2>
         <!-- Botón para abrir el modal de crear nueva tarea -->
         <button class="btn btn-success mt-2" data-toggle="modal" data-target="#crearTareaModal" data-tarea="{}"
-          data-action="crear" data-url="{{ route('tarea.create') }}">Crear Nueva Tarea</button>
-
-
-        @foreach($tareas as $tarea)
+          data-action="crear" data-url="{{ route('tarea.create') }}">Crear nueva tarea</button>
         @php
-        // Determinar el nombre de la imagen según el estado de la tarea y si está vencida
-        $imagen = '';
-        if ($tarea->idEstadoF == 1) {
-        $imagen = 'finalizada.png';
-        } else {
-        $fechaActual = now();
-        $fechaVencimiento = \Carbon\Carbon::parse($tarea->fechaVenc);
-        if ($fechaActual->gt($fechaVencimiento)) {
-        $imagen = 'vencida.png';
-        } else {
-        $imagen = 'pendiente.png';
-        }
-        }
+        $tarea = (object) [
+        'idTarea' => 1,
+        'titulo' => '',
+        'descripcion' => '',
+        'fechaVenc' => '',
+        'idEstadoF' => 2,
+        ];
         @endphp
-        <div class="card mb-3" id="tarea-{{ $tarea->idTarea }}">
-          <img src="{{ asset('assets/' . $imagen) }}" class="estado-imagen" alt="Estado" width="50px">
-          <div class="card-body">
-            <h5 class="card-title">{{ $tarea->titulo }}</h5>
-            <p class="card-text">{{ $tarea->descripcion }}</p>
-            @if($tarea->fechaVenc)
-            <p class="card-text">Fecha de vencimiento: {{ $tarea->fechaVenc }}</p>
-            @endif
-            <form method="POST" class="eliminar-tarea-form" action="/tarea/{{ $tarea->idTarea }}">
-              @csrf
-              @method('DELETE')
-              <button type="submit" class="btn btn-danger eliminar-tarea-btn" data-action="eliminar"
-                data-id="{{ $tarea->idTarea }}">Eliminar</button>
-            </form>
-            <button class="btn btn-primary mt-2 editar-tarea-btn" data-toggle="modal" data-target="#editarTareaModal"
-              data-tarea="{{ json_encode($tarea) }}" data-id="{{ $tarea->idTarea }}">Editar</button>
-
-            <div id="editarTareaContainer-{{ $tarea->idTarea }}"></div>
-
+        <div class="card-container">
+          @foreach($tareas as $tarea)
+          @php
+          // Determinar el nombre de la imagen según el estado de la tarea y si está vencida
+          $imagen = '';
+          if ($tarea->idEstadoF == 1) {
+          $imagen = 'finalizada.png';
+          } else {
+          $fechaActual = now();
+          $fechaVencimiento = \Carbon\Carbon::parse($tarea->fechaVenc);
+          if ($fechaActual->gt($fechaVencimiento)) {
+          $imagen = 'vencida.png';
+          } else {
+          $imagen = 'pendiente.png';
+          }
+          }
+          @endphp
+          <div class="card mb-3" id="tarea-{{ $tarea->idTarea }}">
+            <img src="{{ asset('assets/' . $imagen) }}" class="estado-imagen" alt="Estado" width="50px">
+            <div class="card-body">
+              <h5 class="card-title">{{ $tarea->titulo }}</h5>
+              <p class="card-text">{{ $tarea->descripcion }}</p>
+              @if($tarea->fechaVenc)
+              <p class="card-text">Fecha de vencimiento: {{ $tarea->fechaVenc }}</p>
+              @endif
+              <form method="POST" class="eliminar-tarea-form" action="/tarea/{{ $tarea->idTarea }}">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger eliminar-tarea-btn" data-action="eliminar"
+                  data-id="{{ $tarea->idTarea }}">Eliminar</button>
+              </form>
+              <button class="btn btn-primary mt-2 editar-tarea-btn" data-toggle="modal" data-target="#editarTareaModal"
+                data-tarea="{{ json_encode($tarea) }}" data-id="{{ $tarea->idTarea }}">Editar</button>
+              <div id="editarTareaContainer-{{ $tarea->idTarea }}"></div>
+            </div>
           </div>
+          @endforeach
         </div>
-        @endforeach
-
-
-
-
       </div>
     </div>
   </main>
@@ -110,7 +89,7 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="crearTareaModalLabel">Crear Tarea</h5>
+          <h5 class="modal-title" id="crearTareaModalLabel">Crear tarea</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -132,7 +111,7 @@
             </div>
             <input type="hidden" name="idEstadoF" value="2">
             <input type="hidden" name="idUsuarioF" value="{{ Auth::id() }}">
-            <button type="submit" class="btn btn-primary">Crear Tarea</button>
+            <center><button type="submit" class="btn btn-primary">Crear tarea</button></center>
           </form>
         </div>
       </div>
@@ -145,7 +124,7 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editarTareaModalLabel">Editar Tarea</h5>
+          <h5 class="modal-title" id="editarTareaModalLabel">Editar tarea</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -174,8 +153,8 @@
               </label>
             </div>
             <input type="hidden" id="estadoOriginal" name="estadoOriginal" value="{{ $tarea->idEstadoF }}">
-            <input type="hidden" name="idUsuarioF" value="{{ Auth::id() }}">
-            <button type="submit" class="btn btn-primary">Actualizar Tarea</button>
+            <input type="hidden" name="idUsuarioF" value="{{ Auth::id() }}"><br />
+            <center><button type="submit" class="btn btn-primary">Actualizar tarea</button></center>
           </form>
         </div>
       </div>
@@ -186,7 +165,16 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-
+  <script>
+  $(document).ready(function() {
+    $("#scroll-button").click(function(e) {
+      e.preventDefault();
+      $('html, body').animate({
+        scrollTop: $("#main-content").offset().top
+      }, 500);
+    });
+  });
+  </script>
   <script>
   $(document).ready(function() {
     // Crear nueva tarea
@@ -296,25 +284,26 @@
           var tarea = response.tarea;
           var tareaElement = $("#tarea-" + id);
           tareaElement.find(".card-title").text(tarea.titulo);
-          tareaElement.find(".card-text").remove(); // Eliminar la descripción existente
-          tareaElement.find(".fecha-vencimiento").remove(); // Eliminar la fecha de vencimiento existente
-          tareaElement.append("<p class='card-text'>" + tarea.descripcion +
-            "</p>"); // Agregar la nueva descripción
+          tareaElement.find(".card-text").text(tarea.descripcion);
           if (tarea.fechaVenc) {
-            tareaElement.append("<p class='card-text fecha-vencimiento'>Fecha de vencimiento: " + tarea
-              .fechaVenc + "</p>"); // Agregar la nueva fecha de vencimiento
+            tareaElement.find(".fecha-vencimiento").text("Fecha de vencimiento: " + tarea
+              .fechaVenc); // Actualizar la fecha de vencimiento existente
+          } else {
+            tareaElement.find(".fecha-vencimiento")
+              .remove(); // Eliminar la fecha de vencimiento si no existe en la tarea actualizada
           }
-          tareaElement.find(".eliminar-tarea-btn").data("id", tarea.idTarea);
+          // Actualizar el estado de la tarea en la imagen
+          var nuevaImagen = tarea.idEstadoF == 1 ? 'finalizada.png' : (tarea.idEstadoF == 2 ?
+            'pendiente.png' : 'vencida.png');
+          tareaElement.find('.estado-imagen').attr('src', '{{ asset("assets/") }}/' + nuevaImagen);
+          // Actualizar los datos del botón de editar tarea
           tareaElement.find(".editar-tarea-btn").data("tarea", JSON.stringify(tarea));
           tareaElement.find(".editar-tarea-btn").data("id", tarea.idTarea);
-          // Si el estado original es diferente al nuevo estado, actualizar la imagen
-          if (estadoOriginal != estado) {
-            var nuevaImagen = estado == 1 ? 'finalizada.png' : 'pendiente.png';
-            tareaElement.find('.estado-imagen').attr('src', '{{ asset("assets/") }}/' + nuevaImagen);
-          }
           // Cerrar el modal de edición de tarea
           $("#editarTareaModal").modal("hide");
         },
+
+
         error: function(xhr, status, error) {
           console.error("Error al editar la tarea");
           console.error(xhr.responseText);

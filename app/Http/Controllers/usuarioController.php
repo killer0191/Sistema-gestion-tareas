@@ -55,8 +55,18 @@ public function registrarUsuario(Request $request)
     $request->validate([
         'nombre' => 'required|string|max:50',
         'email' => 'required|email|max:50|unique:users',
-        'password' => 'required|string|max:100',
+        'password' => 'required|string|max:100|confirmed', // Asegura que la confirmación de la contraseña coincida
     ]);
+
+    // Verifica si las contraseñas coinciden
+    if ($request->password !== $request->password_confirmation) {
+        return redirect()->back()->withErrors(['password_confirmation' => 'Las contraseñas no coinciden.'])->withInput($request->except('password', 'password_confirmation'));
+    }
+
+    // Verifica si ya existe un usuario con el mismo correo electrónico
+    if (User::where('email', $request->email)->exists()) {
+        return redirect()->back()->withErrors(['email' => 'Ya existe un usuario con este correo electrónico.'])->withInput($request->except('password', 'password_confirmation'));
+    }
 
     $hashedPassword = Hash::make($request->password);
 
@@ -65,10 +75,23 @@ public function registrarUsuario(Request $request)
     $usuario->email = $request->email;
     $usuario->password = $hashedPassword;
 
-    $usuario->save();
+    // Intenta guardar el usuario
+    if ($usuario->save()) {
+        $credentials = $request->only('email', 'password');
 
-    return redirect()->route('home')->with('success', 'Usuario registrado correctamente');
+        if (Auth::attempt($credentials)) {
+            return redirect()->route('home');
+        }else{
+          redirect()->route('register');
+        }
+
+    } else {
+        // En caso de error al guardar el usuario, redirige al usuario al registro nuevamente con un mensaje de error
+        return redirect()->route('register')->withErrors(['general' => 'Ha ocurrido un error al registrar el usuario. Por favor, intenta nuevamente.'])->withInput($request->except('password', 'password_confirmation'));
+    }
 }
+
+
 public function logout(Request $request)
 {
     Auth::logout();

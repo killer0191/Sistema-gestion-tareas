@@ -42,5 +42,4 @@ Route::post('/login', [usuarioController::class, 'login']);
 
 Route::post('/logout', [usuarioController::class, 'logout'])->name('logout');
 
-// Ruta para el home (puedes ajustarla según la estructura de tu aplicación)
 Route::get('/home', [HomeController::class, 'index'])->name('home')->middleware('auth');

@@ -6,98 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-  <style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-  }
+  <link rel="stylesheet" type="text/css" href="{{ asset('css/login_style.css') }}">
 
-  .register-container {
-    max-width: 400px;
-    margin: 50px auto;
-  }
-
-  .card {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  }
-
-  .card-header {
-    text-align: center;
-  }
-
-  .card-header img {
-    margin-bottom: 20px;
-  }
-
-  .form-group {
-    margin-bottom: 20px;
-    position: relative;
-  }
-
-  .form-label {
-    font-weight: bold;
-    font-size: 1rem;
-    display: block;
-    margin-bottom: 5px;
-  }
-
-  .form-control {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    font-size: 1rem;
-    width: calc(100% - 42px);
-  }
-
-  .form-control-icon {
-    position: absolute;
-    right: 30px;
-    top: 70%;
-    transform: translateY(-50%);
-    cursor: pointer;
-  }
-
-  .btn {
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    font-size: 1rem;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  .btn-primary {
-    background-color: #007bff;
-    color: #fff;
-  }
-
-  .btn-outline-primary {
-    border: 1px solid #007bff;
-    background-color: transparent;
-    color: #007bff;
-  }
-
-  .btn-outline-primary:hover {
-    background-color: #007bff;
-    color: #fff;
-  }
-
-  .text-center {
-    text-align: center;
-  }
-
-  .mt-3 {
-    margin-top: 30px;
-  }
-
-  a {
-    text-decoration: none;
-  }
-  </style>
 </head>
 
 <body>
@@ -119,6 +29,9 @@
           <div class="form-group">
             <label for="email" class="form-label">Correo electrónico:</label>
             <input type="email" name="email" id="email" class="form-control" placeholder="Escriba su email" required>
+            @error('email')
+            <span class="text-danger"><br /> El email ya ha sido registrado</span>
+            @enderror
           </div>
           <div class="form-group position-relative">
             <label for="password" class="form-label">Contraseña:</label>
@@ -133,7 +46,11 @@
             <label for="password_confirmation" class="form-label">Confirmar contraseña:</label>
             <input type="password" name="password_confirmation" id="password_confirmation" class="form-control"
               placeholder="Confirme su contraseña" required>
+            @error('password_confirmation')
+            <span class="text-danger">{{ $message }}</span>
+            @enderror
           </div>
+
           <button class="btn btn-primary">
             Crear cuenta
           </button>
