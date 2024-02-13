@@ -27,7 +27,7 @@
 
   <main class="container mt-5" id="main-content">
     <div class="row">
-      <div class="col-md-6 offset-md-3">
+      <div class="col">
         <h2>Lista de tareas</h2>
         <!-- Botón para abrir el modal de crear nueva tarea -->
         <button class="btn btn-success mt-2" data-toggle="modal" data-target="#crearTareaModal" data-tarea="{}"
