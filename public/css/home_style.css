@@ -57,6 +57,47 @@ body {
     border-color: #4caf50;
 }
 
+.btn-accion {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    margin-right: 10rem;
+}
+.btn-group {
+    position: relative;
+}
+
+.btn-accion {
+    position: absolute;
+    top: 80px;
+}
+.btn-group {
+    position: relative;
+}
+
+.eliminar-tarea-btn {
+    position: absolute;
+    top: 80px;
+    right: 0;
+    padding: 5px 15px;
+    font-size: 0.8rem;
+    background-color: #dc3545;
+    border: none;
+    /*border-radius: 20px;*/
+    color: #fff;
+    margin-right: 10px;
+}
+
+.editar-tarea-btn {
+    padding: 5px 15px;
+    font-size: 0.8rem;
+    background-color: #007bff;
+    border: none;
+    /*   border-radius: 20px;*/
+    color: #fff;
+    /*  border-top-right-radius: 0;
+    border-bottom-right-radius: 0; */
+}
+
 .dark-theme {
     background-color: #4c4747;
 }
@@ -71,7 +112,7 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     gap: 20px;
-    margin-top: 20px; /* Añade un margen arriba para separar del botón */
+    margin-top: 20px;
 }
 
 .card {
